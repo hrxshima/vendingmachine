@@ -6,28 +6,34 @@ public class VendingMachine
 {
     private List<Product> products = new List<Product>();
     private int[] coins = { 1, 2, 5, 10 };
-    private int insertedMoney = 0;
-    private int totalSales = 0;
+    private decimal insertedMoney = 0;  
+    private decimal totalSales = 0;
 
     public VendingMachine()
     {
-        products.Add(new Product(1, "Вода 0.5л", 40, 10));
-        products.Add(new Product(2, "Чипсы", 75, 5));
-        products.Add(new Product(3, "Шоколад", 90, 5));
-        products.Add(new Product(4, "Кофе", 60, 8));
+        products.Add(new Product(1, "Вода 0.5л", 40.0m, 10));
+        products.Add(new Product(2, "Чипсы", 75.0m, 5));
+        products.Add(new Product(3, "Шоколад", 90.0m, 5));
+        products.Add(new Product(4, "Кофе", 60.0m, 8));
     }
 
     public void Run()
     {
         while (true)
         {
-            Console.WriteLine("\n--- Вендинговый автомат ---");
-            Console.WriteLine("1. Показать товары");
-            Console.WriteLine("2. Вставить монету");
-            Console.WriteLine("3. Выбрать товар");
-            Console.WriteLine("4. Отменить и вернуть деньги");
-            Console.WriteLine("5. Админ меню");
-            Console.WriteLine("0. Выход");
+            string[] mainMenu = {
+                "\n--- Вендинговый автомат ---",
+                "1. Показать товары",
+                "2. Вставить монету",
+                "3. Выбрать товар",
+                "4. Отменить и вернуть деньги",
+                "5. Админ меню",
+                "0. Выход"
+            };
+
+            foreach (var line in mainMenu)
+                Console.WriteLine(line);
+
             Console.Write("Ваш выбор: ");
             string? choice = Console.ReadLine();
 
@@ -46,9 +52,9 @@ public class VendingMachine
         Console.WriteLine("\nТовары:");
         foreach (var p in products)
         {
-            Console.WriteLine($"{p.Id}. {p.Name} — {p.Price} руб. (в наличии: {p.Quantity})");
+            Console.WriteLine($"{p.Id}. {p.Name} — {p.Price:F2} руб. (в наличии: {p.Quantity})");
         }
-        Console.WriteLine($"Внесено: {insertedMoney} руб.");
+        Console.WriteLine($"Внесено: {insertedMoney:F2} руб.");
     }
 
     private void InsertCoin()
@@ -59,7 +65,7 @@ public class VendingMachine
         if (input != null && int.TryParse(input, out int coin) && Array.Exists(coins, c => c == coin))
         {
             insertedMoney += coin;
-            Console.WriteLine($"Вы внесли {coin} руб. Всего внесено: {insertedMoney} руб.");
+            Console.WriteLine($"Вы внесли {coin} руб. Всего внесено: {insertedMoney:F2} руб.");
         }
         else
         {
@@ -86,7 +92,7 @@ public class VendingMachine
         }
         if (insertedMoney < product.Price)
         {
-            Console.WriteLine($"Недостаточно денег. Цена: {product.Price} руб.");
+            Console.WriteLine($"Недостаточно денег. Цена: {product.Price:F2} руб.");
             return;
         }
 
@@ -103,12 +109,12 @@ public class VendingMachine
 
     private void GiveChange()
     {
-        int change = insertedMoney;
+        decimal change = insertedMoney;
         int[] coinsDesc = coins.OrderByDescending(c => c).ToArray();
         Console.Write("Сдача: ");
         foreach (int c in coinsDesc)
         {
-            int count = change / c;
+            int count = (int)(change / c);
             if (count > 0)
             {
                 Console.Write($"{count}x{c} ");
@@ -141,13 +147,19 @@ public class VendingMachine
             return;
         }
 
+        string[] adminMenu = {
+            "\n--- Админ меню ---",
+            "1. Пополнить товар",
+            "2. Добавить новый товар",
+            "3. Посмотреть выручку",
+            "0. Выход"
+        };
+
         while (true)
         {
-            Console.WriteLine("\n--- Админ меню ---");
-            Console.WriteLine("1. Пополнить товар");
-            Console.WriteLine("2. Добавить новый товар");
-            Console.WriteLine("3. Посмотреть выручку");
-            Console.WriteLine("0. Выход");
+            foreach (var line in adminMenu)
+                Console.WriteLine(line);
+
             Console.Write("Ваш выбор: ");
             string? choice = Console.ReadLine();
 
@@ -181,7 +193,7 @@ public class VendingMachine
 
                 Console.Write("Цена: ");
                 string? priceInput = Console.ReadLine();
-                if (priceInput == null || !int.TryParse(priceInput, out int price)) price = 0;
+                if (priceInput == null || !decimal.TryParse(priceInput, out decimal price)) price = 0;
 
                 Console.Write("Количество: ");
                 string? qtyInput = Console.ReadLine();
@@ -192,7 +204,7 @@ public class VendingMachine
             }
             else if (choice == "3")
             {
-                Console.WriteLine($"Выручка: {totalSales} руб.");
+                Console.WriteLine($"Выручка: {totalSales:F2} руб.");
             }
             else if (choice == "0") break;
         }
