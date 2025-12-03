@@ -1,114 +1,106 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 public class VendingMachine
 {
     private List<Product> products = new List<Product>();
     private int[] coins = { 1, 2, 5, 10 };
-    private decimal insertedMoney = 0;  
+    private decimal insertedMoney = 0;
     private decimal totalSales = 0;
 
     public VendingMachine()
     {
-        products.Add(new Product(1, "Вода 0.5л", 40.0m, 10));
-        products.Add(new Product(2, "Чипсы", 75.0m, 5));
-        products.Add(new Product(3, "Шоколад", 90.0m, 5));
-        products.Add(new Product(4, "Кофе", 60.0m, 8));
+        products.Add(new Product(1, "Вода 0.5л", 40m, 10));
+        products.Add(new Product(2, "Чипсы", 75m, 5));
+        products.Add(new Product(3, "Шоколад", 90m, 5));
+        products.Add(new Product(4, "Кофе", 60m, 8));
     }
 
-public void Run()
-{
-    string[] mainMenu = {
-        "\n--- Вендинговый автомат ---",
-        "1. Показать товары",
-        "2. Вставить монету",
-        "3. Выбрать товар",
-        "4. Отменить и вернуть деньги",
-        "5. Админ меню",
-        "0. Выход"
-    };
-
-    while (true)
+    public void Run()
     {
-        foreach (var line in mainMenu)
-            Console.WriteLine(line);
-
-        Console.Write("Ваш выбор: ");
-        string? choice = Console.ReadLine();
-
-        switch (choice)
+        while (true)
         {
-            case "1":
-                ShowProducts();
-                break;
-            case "2":
-                InsertCoin();
-                break;
-            case "3":
-                BuyProduct();
-                break;
-            case "4":
-                Cancel();
-                break;
-            case "5":
-                AdminMenu();
-                break;
-            case "0":
-                return;
-            default:
-                Console.WriteLine("Неверный ввод.");
-                break;
+            Console.WriteLine("\nМеню");
+            Console.WriteLine("1. Показать товары");
+            Console.WriteLine("2. Вставить монету");
+            Console.WriteLine("3. Купить товар");
+            Console.WriteLine("4. Отмена и сдача");
+            Console.WriteLine("5. Админ меню");
+            Console.WriteLine("0. Выход");
+            Console.Write("Ваш выбор: ");
+
+            string choice = Console.ReadLine();
+
+            if (choice == "1") ShowProducts();
+            else if (choice == "2") InsertCoin();
+            else if (choice == "3") BuyProduct();
+            else if (choice == "4") Cancel();
+            else if (choice == "5") AdminMenu();
+            else if (choice == "0") return;
+            else Console.WriteLine("Неверный ввод.");
         }
     }
-}
 
     private void ShowProducts()
     {
         Console.WriteLine("\nТовары:");
         foreach (var p in products)
         {
-            Console.WriteLine($"{p.Id}. {p.Name} — {p.Price:F2} руб. (в наличии: {p.Quantity})");
+            Console.WriteLine($"{p.Id}. {p.Name} — {p.Price} руб. (осталось: {p.Quantity})");
         }
-        Console.WriteLine($"Внесено: {insertedMoney:F2} руб.");
+        Console.WriteLine($"Вы внесли: {insertedMoney} руб.");
     }
 
     private void InsertCoin()
     {
-        Console.WriteLine("\nДоступные монеты: 1, 2, 5, 10 руб.");
-        Console.Write("Введите номинал монеты: ");
-        string? input = Console.ReadLine();
-        if (input != null && int.TryParse(input, out int coin) && Array.Exists(coins, c => c == coin))
+        Console.WriteLine("\nДоступные монеты: 1, 2, 5, 10");
+        Console.Write("Введите монету: ");
+
+        if (int.TryParse(Console.ReadLine(), out int coin))
         {
-            insertedMoney += coin;
-            Console.WriteLine($"Вы внесли {coin} руб. Всего внесено: {insertedMoney:F2} руб.");
-        }
-        else
-        {
-            Console.WriteLine("Такой монеты нет.");
+            bool exists = false;
+            foreach (int c in coins)
+                if (c == coin) exists = true;
+
+            if (exists)
+            {
+                insertedMoney += coin;
+                Console.WriteLine($"Теперь внесено: {insertedMoney}");
+            }
+            else
+                Console.WriteLine("Такой монеты нет.");
         }
     }
 
     private void BuyProduct()
     {
         Console.Write("Введите id товара: ");
-        string? input = Console.ReadLine();
-        if (input == null || !int.TryParse(input, out int id)) return;
 
-        var product = products.Find(p => p.Id == id);
+        if (!int.TryParse(Console.ReadLine(), out int id))
+        {
+            Console.WriteLine("Неверный ввод.");
+            return;
+        }
+
+        Product product = null;
+        foreach (var p in products)
+            if (p.Id == id) product = p;
+
         if (product == null)
         {
             Console.WriteLine("Нет такого товара.");
             return;
         }
-        if (product.Quantity <= 0)
+
+        if (product.Quantity == 0)
         {
             Console.WriteLine("Товар закончился.");
             return;
         }
+
         if (insertedMoney < product.Price)
         {
-            Console.WriteLine($"Недостаточно денег. Цена: {product.Price:F2} руб.");
+            Console.WriteLine("Недостаточно денег.");
             return;
         }
 
@@ -116,27 +108,42 @@ public void Run()
         insertedMoney -= product.Price;
         totalSales += product.Price;
 
-        Console.WriteLine($"Вы купили: {product.Name}");
+        Console.WriteLine($"Куплено: {product.Name}");
+
         if (insertedMoney > 0)
-        {
             GiveChange();
-        }
     }
 
-    private void GiveChange()
+        private void GiveChange()
     {
         decimal change = insertedMoney;
-        int[] coinsDesc = coins.OrderByDescending(c => c).ToArray();
+
         Console.Write("Сдача: ");
-        foreach (int c in coinsDesc)
+
+        while (change > 0)
         {
-            int count = (int)(change / c);
-            if (count > 0)
+            if (change >= 10)
             {
-                Console.Write($"{count}x{c} ");
-                change -= count * c;
+                Console.Write("1x10 ");
+                change -= 10;
+            }
+            else if (change >= 5)
+            {
+                Console.Write("1x5 ");
+                change -= 5;
+            }
+            else if (change >= 2)
+            {
+                Console.Write("1x2 ");
+                change -= 2;
+            }
+            else
+            {
+                Console.Write("1x1 ");
+                change -= 1;
             }
         }
+
         Console.WriteLine();
         insertedMoney = 0;
     }
@@ -145,84 +152,77 @@ public void Run()
     {
         if (insertedMoney > 0)
         {
+            Console.WriteLine("Отмена.");
             GiveChange();
         }
         else
-        {
             Console.WriteLine("Вы ничего не внесли.");
-        }
     }
 
     private void AdminMenu()
     {
-        Console.Write("Введите пароль администратора: ");
-        string? pass = Console.ReadLine();
-        if (pass != "admin")
+        Console.Write("Пароль: ");
+        if (Console.ReadLine() != "admin")
         {
-            Console.WriteLine("Неверный пароль.");
+            Console.WriteLine("Неверный пароль");
             return;
         }
 
-        string[] adminMenu = {
-            "\n--- Админ меню ---",
-            "1. Пополнить товар",
-            "2. Добавить новый товар",
-            "3. Посмотреть выручку",
-            "0. Выход"
-        };
-
         while (true)
         {
-            foreach (var line in adminMenu)
-                Console.WriteLine(line);
-
+            Console.WriteLine("\nАдмин");
+            Console.WriteLine("1. Пополнить товар");
+            Console.WriteLine("2. Добавить товар");
+            Console.WriteLine("3. Выручка");
+            Console.WriteLine("0. Назад");
             Console.Write("Ваш выбор: ");
-            string? choice = Console.ReadLine();
+
+            string choice = Console.ReadLine();
 
             if (choice == "1")
             {
                 ShowProducts();
-                Console.Write("Введите id товара: ");
-                string? input = Console.ReadLine();
-                if (input != null && int.TryParse(input, out int id))
+                Console.Write("Введите id: ");
+
+                if (int.TryParse(Console.ReadLine(), out int id))
                 {
-                    var product = products.Find(p => p.Id == id);
-                    if (product != null)
+                    Product p = null;
+                    foreach (var pr in products)
+                        if (pr.Id == id) p = pr;
+
+                    if (p != null)
                     {
                         Console.Write("Сколько добавить: ");
-                        string? countInput = Console.ReadLine();
-                        if (countInput != null && int.TryParse(countInput, out int count))
+                        if (int.TryParse(Console.ReadLine(), out int add))
                         {
-                            product.Quantity += count;
-                            Console.WriteLine("Товар пополнен.");
+                            p.Quantity += add;
+                            Console.WriteLine("Добавлено.");
                         }
                     }
                 }
             }
             else if (choice == "2")
             {
-                int newId = products.Any() ? products.Max(p => p.Id) + 1 : 1;
+                int newId = products.Count + 1;
 
                 Console.Write("Название: ");
-                string? name = Console.ReadLine();
-                if (string.IsNullOrWhiteSpace(name)) name = "Без имени";
+                string name = Console.ReadLine();
 
                 Console.Write("Цена: ");
-                string? priceInput = Console.ReadLine();
-                if (priceInput == null || !decimal.TryParse(priceInput, out decimal price)) price = 0;
+                decimal.TryParse(Console.ReadLine(), out decimal price);
 
                 Console.Write("Количество: ");
-                string? qtyInput = Console.ReadLine();
-                if (qtyInput == null || !int.TryParse(qtyInput, out int qty)) qty = 0;
+                int.TryParse(Console.ReadLine(), out int qty);
 
                 products.Add(new Product(newId, name, price, qty));
-                Console.WriteLine("Товар добавлен.");
+                Console.WriteLine("Добавлено.");
             }
             else if (choice == "3")
             {
-                Console.WriteLine($"Выручка: {totalSales:F2} руб.");
+                Console.WriteLine($"Выручка: {totalSales}");
             }
-            else if (choice == "0") break;
+            else if (choice == "0")
+                return;
         }
     }
 }
