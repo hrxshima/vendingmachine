@@ -17,35 +17,51 @@ public class VendingMachine
         products.Add(new Product(4, "Кофе", 60.0m, 8));
     }
 
-    public void Run()
+public void Run()
+{
+    string[] mainMenu = {
+        "\n--- Вендинговый автомат ---",
+        "1. Показать товары",
+        "2. Вставить монету",
+        "3. Выбрать товар",
+        "4. Отменить и вернуть деньги",
+        "5. Админ меню",
+        "0. Выход"
+    };
+
+    while (true)
     {
-        while (true)
+        foreach (var line in mainMenu)
+            Console.WriteLine(line);
+
+        Console.Write("Ваш выбор: ");
+        string? choice = Console.ReadLine();
+
+        switch (choice)
         {
-            string[] mainMenu = {
-                "\n--- Вендинговый автомат ---",
-                "1. Показать товары",
-                "2. Вставить монету",
-                "3. Выбрать товар",
-                "4. Отменить и вернуть деньги",
-                "5. Админ меню",
-                "0. Выход"
-            };
-
-            foreach (var line in mainMenu)
-                Console.WriteLine(line);
-
-            Console.Write("Ваш выбор: ");
-            string? choice = Console.ReadLine();
-
-            if (choice == "1") ShowProducts();
-            else if (choice == "2") InsertCoin();
-            else if (choice == "3") BuyProduct();
-            else if (choice == "4") Cancel();
-            else if (choice == "5") AdminMenu();
-            else if (choice == "0") break;
-            else Console.WriteLine("Неверный ввод.");
+            case "1":
+                ShowProducts();
+                break;
+            case "2":
+                InsertCoin();
+                break;
+            case "3":
+                BuyProduct();
+                break;
+            case "4":
+                Cancel();
+                break;
+            case "5":
+                AdminMenu();
+                break;
+            case "0":
+                return;
+            default:
+                Console.WriteLine("Неверный ввод.");
+                break;
         }
     }
+}
 
     private void ShowProducts()
     {
